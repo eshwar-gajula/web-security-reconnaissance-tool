@@ -1,0 +1,49 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "web-security-reconnaissance-tool"
+version = "1.0.0"
+description = "Bounded DNS and HTTP reconnaissance for explicitly authorized web targets."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Web Security Reconnaissance Tool contributors" }]
+dependencies = ["requests>=2.32,<3", "dnspython>=2.7,<3"]
+keywords = ["web-security", "dns", "reconnaissance", "http", "authorized-testing"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Intended Audience :: Information Technology",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: POSIX :: Linux",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+  "Topic :: Internet :: WWW/HTTP",
+  "Topic :: Security",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0,<9", "ruff>=0.11,<1", "jsonschema>=4.21,<5"]
+
+[project.scripts]
+webrecon = "webrecon.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/webrecon"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]

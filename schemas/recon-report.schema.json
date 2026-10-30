@@ -1,0 +1,142 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Web Security Reconnaissance Report",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "tool",
+    "scan_id",
+    "started_at",
+    "finished_at",
+    "duration_seconds",
+    "authorization_acknowledged",
+    "summary",
+    "results"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "tool": {
+      "type": "object",
+      "required": ["name", "version"],
+      "properties": {
+        "name": { "const": "web-security-reconnaissance-tool" },
+        "version": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "scan_id": { "type": "string", "pattern": "^[a-f0-9]{12}$" },
+    "started_at": { "type": "string", "format": "date-time" },
+    "finished_at": { "type": "string", "format": "date-time" },
+    "duration_seconds": { "type": "number", "minimum": 0 },
+    "authorization_acknowledged": { "const": true },
+    "summary": {
+      "type": "object",
+      "required": ["targets", "http_responses", "endpoints", "findings"],
+      "properties": {
+        "targets": { "type": "integer", "minimum": 1 },
+        "http_responses": { "type": "integer", "minimum": 0 },
+        "endpoints": { "type": "integer", "minimum": 0 },
+        "findings": { "type": "integer", "minimum": 0 }
+      },
+      "additionalProperties": false
+    },
+    "results": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/targetResult" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "targetResult": {
+      "type": "object",
+      "required": ["target", "origin", "hostname", "dns", "http", "endpoints", "findings", "warnings"],
+      "properties": {
+        "target": { "type": "string" },
+        "origin": { "type": "string", "format": "uri" },
+        "hostname": { "type": "string", "minLength": 1 },
+        "dns": { "type": "array", "items": { "$ref": "#/$defs/dnsObservation" } },
+        "http": {
+          "oneOf": [
+            { "type": "null" },
+            { "$ref": "#/$defs/httpObservation" }
+          ]
+        },
+        "endpoints": { "type": "array", "items": { "$ref": "#/$defs/endpointObservation" } },
+        "findings": { "type": "array", "items": { "$ref": "#/$defs/finding" } },
+        "warnings": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "dnsObservation": {
+      "type": "object",
+      "required": ["name", "record_type", "status", "values", "ttl", "detail"],
+      "properties": {
+        "name": { "type": "string" },
+        "record_type": { "enum": ["A", "AAAA", "CNAME", "MX", "NS", "TXT", "CAA", "SOA", "PTR"] },
+        "status": { "enum": ["ok", "no_answer", "nxdomain", "timeout", "resolver_error", "error"] },
+        "values": { "type": "array", "items": { "type": "string" }, "maxItems": 50 },
+        "ttl": { "type": ["integer", "null"], "minimum": 0 },
+        "detail": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "endpointObservation": {
+      "type": "object",
+      "required": ["path", "method", "status_code", "discovered_by", "probed", "content_type", "content_length", "error_type"],
+      "properties": {
+        "path": { "type": "string", "maxLength": 512 },
+        "method": { "enum": ["GET", "HEAD", "DISCOVERED"] },
+        "status_code": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "discovered_by": { "type": "array", "items": { "type": "string" } },
+        "probed": { "type": "boolean" },
+        "content_type": { "type": ["string", "null"] },
+        "content_length": { "type": ["integer", "null"], "minimum": 0 },
+        "error_type": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "cookieAssessment": {
+      "type": "object",
+      "required": ["name", "secure", "http_only", "same_site"],
+      "properties": {
+        "name": { "type": "string", "maxLength": 80 },
+        "secure": { "type": "boolean" },
+        "http_only": { "type": "boolean" },
+        "same_site": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "httpObservation": {
+      "type": "object",
+      "required": ["url", "status_code", "headers", "technologies", "cookies", "tls", "endpoint_count", "response_bytes_sampled", "body_truncated", "redirect_same_origin", "error_type"],
+      "properties": {
+        "url": { "type": "string", "format": "uri" },
+        "status_code": { "type": ["integer", "null"], "minimum": 100, "maximum": 599 },
+        "headers": { "type": "object", "additionalProperties": { "type": "string", "maxLength": 512 } },
+        "technologies": { "type": "array", "items": { "type": "string" } },
+        "cookies": { "type": "array", "items": { "$ref": "#/$defs/cookieAssessment" }, "maxItems": 20 },
+        "tls": { "type": "object" },
+        "endpoint_count": { "type": "integer", "minimum": 0, "maximum": 256 },
+        "response_bytes_sampled": { "type": "integer", "minimum": 0, "maximum": 262144 },
+        "body_truncated": { "type": "boolean" },
+        "redirect_same_origin": { "type": ["boolean", "null"] },
+        "error_type": { "type": ["string", "null"] }
+      },
+      "additionalProperties": false
+    },
+    "finding": {
+      "type": "object",
+      "required": ["rule_id", "title", "severity", "confidence", "evidence", "recommendation", "source"],
+      "properties": {
+        "rule_id": { "type": "string" },
+        "title": { "type": "string" },
+        "severity": { "enum": ["info", "low", "medium", "high"] },
+        "confidence": { "enum": ["low", "medium", "high"] },
+        "evidence": { "type": "string" },
+        "recommendation": { "type": "string" },
+        "source": { "type": "string" }
+      },
+      "additionalProperties": false
+    }
+  }
+}

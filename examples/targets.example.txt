@@ -1,0 +1,4 @@
+# Replace these with domains you own or are explicitly authorized to assess.
+# One URL or hostname per line; hostnames default to HTTPS.
+https://example.internal
+staging.example.internal
